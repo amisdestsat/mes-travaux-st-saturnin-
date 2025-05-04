@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Mes travaux à Saint-Saturnin – V4.2</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 0; }
+    .container { max-width: 600px; margin: 30px auto; background: white; border-radius: 10px; padding: 20px; box-shadow: 0 0 8px rgba(0,0,0,0.1); }
+    h1 { text-align: center; color: #2f5d2f; }
+    .chatlog { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+    .bubble { padding: 10px 15px; border-radius: 20px; max-width: 85%; }
+    .bot { background: #e0f0e0; align-self: flex-start; }
+    .user { background: #cce0ff; align-self: flex-end; text-align: right; }
+    .input-area { display: flex; margin-top: 20px; gap: 10px; }
+    input[type="text"] { flex: 1; padding: 10px; border-radius: 5px; border: 1px solid #ccc; }
+    button { padding: 10px 15px; background: #3b7d3b; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    button:hover { background: #2d5c2d; }
+    .footer { margin-top: 30px; font-size: 0.9em; color: #444; border-top: 1px solid #ccc; padding-top: 15px; }
+    .footer a { color: #2f5d2f; text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+    .map img { max-width: 100%; margin-top: 10px; border-radius: 4px; border: 1px solid #aaa; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Mes travaux à Saint-Saturnin</h1>
+  <div class="chatlog" id="chatlog">
+    <div class="bubble bot">
+      Bonjour et bienvenue dans l’outil <strong>Mes travaux à Saint-Saturnin</strong>.<br><br>
+      Ce service vous aide à comprendre les règles locales de l’AVAP. Il ne remplace pas l’avis officiel mais vous oriente pour vos projets.<br><br>
+      👉 Quel est votre projet ? (ex. “Je veux construire une terrasse”, “Je refais ma toiture”, “Je pose une clôture”, “Je rénove une façade”, etc.)
+    </div>
+  </div>
+
+  <div class="input-area">
+    <input type="text" id="userInput" placeholder="Décrivez votre projet...">
+    <button onclick="sendMessage()">Envoyer</button>
+  </div>
+
+  <div class="footer">
+    📄 <a href="https://www.saint-saturnin63.fr/wp-content/uploads/2015/06/REGLEMENT-170718.pdf" target="_blank">
+      Consulter le règlement AVAP complet</a><br><br>
+    📬 Pour toute question :<br>
+    🏛️ Mairie : <a href="mailto:contact@saint-saturnin63.fr">contact@saint-saturnin63.fr</a><br>
+    🤝 Asso : <a href="mailto:amis.de.saint.saturnin@gmail.com">amis.de.saint.saturnin@gmail.com</a><br>
+    📞 07 68 49 44 63
+  </div>
+</div>
+
+<script>
+const rules = {
+  terrasse: {
+    S1: "✅ Intégrée à la pente naturelle.<br>❌ Pilotis visibles interdits.<br>📄 Page 34.<br>📌 Contactez la mairie ou l'association des Amis de Saint-Saturnin.",
+    S2: "✅ Discrète avec matériaux sobres.<br>❌ Pilotis interdits.<br>📄 Page 77.<br>📌 Contactez la mairie ou l'association des Amis de Saint-Saturnin.",
+    S3: "✅ Acceptée si peu visible.<br>❌ Surélévation visible interdite.<br>📄 Page 92.<br>📌 Contactez la mairie ou l'association des Amis de Saint-Saturnin."
+  },
+  cloture: {
+    S1: "✅ Pierre, bois, métal peint.<br>❌ PVC, grillage nu interdits.<br>📄 Page 26.<br>📌 Contactez la mairie ou l'association des Amis de Saint-Saturnin.",
+    S2: "✅ Souplesse possible hors vis-à-vis.<br>❌ Clôtures pleines interdites en façade.<br>📄 Page 70.<br>📌 Contactez la mairie ou l'association des Amis de Saint-Saturnin.",
+    S3: "✅ Clôtures végétales recommandées.<br>❌ Grillages visibles déconseillés.<br>📄 Page 96.<br>📌 Contactez la mairie ou l'association des Amis de Saint-Saturnin."
+  },
+  facade: {
+    S1: "✅ Enduits chaux, pierre locale, tons ocre autorisés.<br>❌ Bardages plastiques, enduits modernes interdits.<br>📄 Page 25.<br>📌 Contactez la mairie ou l'association des Amis de Saint-Saturnin.",
+    S2: "✅ Matériaux anciens ou sobres en harmonie.<br>❌ Enduits cimentés ou trop lisses interdits.<br>📄 Page 28.<br>📌 Contactez la mairie ou l'association des Amis de Saint-Saturnin.",
+    S3: "✅ Façades discrètes et cohérentes recommandées.<br>❌ Façades clinquantes ou colorées interdites.<br>📄 Page 30.<br>📌 Contactez la mairie ou l'association des Amis de Saint-Saturnin."
+  },
+  toiture: {
+    S1: "✅ Tuiles canal traditionnelles, pente classique.<br>❌ Toitures plates visibles interdites.<br>📄 Page 35.<br>📌 Contactez la mairie ou l'association des Amis de Saint-Saturnin.",
+    S2: "✅ Tuiles vieillies ou canal, couleurs sobres.<br>❌ Tuiles béton, brillance élevée interdites.<br>📄 Page 38.<br>📌 Contactez la mairie ou l'association des Amis de Saint-Saturnin.",
+    S3: "✅ Toitures discrètes et homogènes recommandées.<br>❌ Couleurs criardes interdites.<br>📄 Page 40.<br>📌 Contactez la mairie ou l'association des Amis de Saint-Saturnin."
+  },
+  extension: {
+    S1: "✅ Extension intégrée au bâti existant, volumes cohérents.<br>❌ Surélévations démesurées interdites.<br>📄 Page 42.<br>📌 Contactez la mairie ou l'association des Amis de Saint-Saturnin.",
+    S2: "✅ Matériaux et proportions harmonisés.<br>❌ Volumes modernes type cube interdits.<br>📄 Page 44.<br>📌 Contactez la mairie ou l'association des Amis de Saint-Saturnin.",
+    S3: "✅ Sobriété exigée, matériaux discrets.<br>❌ Surélévations visibles ou cubiques interdites.<br>📄 Page 45.<br>📌 Contactez la mairie ou l'association des Amis de Saint-Saturnin."
+  },
+  menuiserie: {
+    S1: "✅ Bois peint, ferronneries fines, vitrages clairs.<br>❌ PVC blanc brillant, volets roulants apparents interdits.<br>📄 Page 46.<br>📌 Contactez la mairie ou l'association des Amis de Saint-Saturnin.",
+    S2: "✅ Formes traditionnelles, matériaux nobles.<br>❌ Volets en plastique, vitrages réfléchissants interdits.<br>📄 Page 48.<br>📌 Contactez la mairie ou l'association des Amis de Saint-Saturnin.",
+    S3: "✅ Discrétion et qualité exigées.<br>❌ Matériaux industriels visibles interdits.<br>📄 Page 50.<br>📌 Contactez la mairie ou l'association des Amis de Saint-Saturnin."
+  },
+  commerce: {
+    S1: "✅ Enseignes peintes, bois ou métal sobre.<br>❌ Enseignes lumineuses clignotantes interdites.<br>📄 Page 55.<br>📌 Contactez la mairie ou l'association des Amis de Saint-Saturnin.",
+    S2: "✅ Éléments intégrés à la façade.<br>❌ Caissons plastiques, enseignes criardes interdites.<br>📄 Page 58.<br>📌 Contactez la mairie ou l'association des Amis de Saint-Saturnin.",
+    S3: "✅ Sobriété commerciale imposée.<br>❌ Enseignes saillantes interdites.<br>📄 Page 60.<br>📌 Contactez la mairie ou l'association des Amis de Saint-Saturnin."
+  },
+  photovoltaique: {
+    S1: "✅ Intégrés au toit, invisibles depuis la rue.<br>❌ Panneaux en façade ou visibles interdits.<br>📄 Page 36.<br>📌 Contactez la mairie ou l'association des Amis de Saint-Saturnin.",
+    S2: "✅ Discrets, intégrés à l'existant, hors vue publique.<br>❌ Panneaux sur toiture plate visible interdits.<br>📄 Page 39.<br>📌 Contactez la mairie ou l'association des Amis de Saint-Saturnin.",
+    S3: "✅ Disposition arrière et matériaux neutres recommandés.<br>❌ Brillance excessive, installations visibles interdites.<br>📄 Page 41.<br>📌 Contactez la mairie ou l'association des Amis de Saint-Saturnin."
+  }
+};
+
+let step = 0;
+let projectType = "";
+const chatlog = document.getElementById("chatlog");
+
+function sendMessage() {
+  const input = document.getElementById("userInput");
+  const msg = input.value.trim();
+  if (!msg) return;
+  append("user", msg);
+  input.value = "";
+
+  if (step === 0) {
+    const text = msg.toLowerCase();
+    if (text.includes("terrasse")) projectType = "terrasse";
+    else if (text.includes("clôture") || text.includes("cloture")) projectType = "cloture";
+    else if (text.includes("façade") || text.includes("facade")) projectType = "facade";
+    else if (text.includes("toiture") || text.includes("toit")) projectType = "toiture";
+    else if (text.includes("extension") || text.includes("surélévation")) projectType = "extension";
+    else if (text.includes("menuiserie") || text.includes("volet") || text.includes("fenêtre") || text.includes("vitrage") || text.includes("porte")) projectType = "menuiserie";
+    else if (text.includes("commerce") || text.includes("enseigne")) projectType = "commerce";
+    else if (text.includes("panneau") || text.includes("photovoltaïque") || text.includes("solaire")) projectType = "photovoltaique";
+    else {
+      append("bot", "Je n’ai pas reconnu ce projet. Essayez avec : terrasse, clôture, façade, toiture, extension, menuiserie, commerce ou panneaux photovoltaïques.");
+      return;
+    }
+    step = 1;
+    append("bot", `Merci. Connaissez-vous votre secteur ? (S1, S2 ou S3)<br><br>
+      🗺️ Voici la carte des zones AVAP :<br>
+      <div class="map">
+        <a href="https://upload.wikimedia.org/wikipedia/commons/6/6f/Carte_saint_saturnin_zonage.png" target="_blank">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/6/6f/Carte_saint_saturnin_zonage.png" alt="Carte AVAP">
+        </a>
+      </div>`);
+  } else if (step === 1) {
+    const sec = msg.toUpperCase().match(/S[123]/);
+    if (!sec || !["S1", "S2", "S3"].includes(sec[0])) {
+      append("bot", "Merci d’indiquer un secteur parmi : S1, S2 ou S3.");
+      return;
+    }
+    append("bot", rules[projectType][sec[0]]);
+    step = 0;
+    projectType = "";
+  }
+}
+
+function append(sender, text) {
+  const div = document.createElement("div");
+  div.className = "bubble " + sender;
+  div.innerHTML = text;
+  chatlog.appendChild(div);
+  chatlog.scrollTop = chatlog.scrollHeight;
+}
+</script>
+</body>
+</html>
